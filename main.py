@@ -1,8 +1,10 @@
 from dataPreprocess import DataProcesser
 from sklearn.model_selection import train_test_split
+from pandas import DataFrame
 
 dp = DataProcesser()
 data = dp.getData()
+data = DataFrame(data).to_numpy()
 print(data)
 
 label = data["label"]
