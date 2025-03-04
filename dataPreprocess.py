@@ -3,30 +3,24 @@ import numpy as np
 import pandas as pd
 
 class DataProcesser:
-    __filePath = "" 
+    __filePath = []
     __data = None   
 
     def __init__(self):
-
-        self.getFilePath()
-        self.__readFile()
-        
-    def getFilePath(self):
+        self.__data = self.__readFile()
         self.__file = []
         self.__bassPath =""
-        tmpPath = ""
-
+        
         self.__file = [ "S"+str(i) for i in range(2,18) ]
         self.__file.remove("S12")
         self.__bassPath = os.path.join(os.path.dirname(__file__), 'WESAD')
-
+        filePath = []
         for i in range(len(self.__file)):
-            filePath = []
-            tmpPath = os.path.join(self.__bassPath, str(self.__file[i]))
-            tmpPath = os.path.join(tmpPath, str(self.__file[i])+".pkl")
-            filePath.append(tmpPath)
-        self.__filePath = filePath
-        return self.__filePath
+            tempPath = os.path.join(self.__bassPath, str(self.__file[i]))
+            tempPath = os.path.join(tempPath, str(self.__file[i]))
+            tempPath = tempPath + ".pkl"
+            filePath.append(str(tempPath))
+            self.__filePath.append(str(filePath[i]))
 
     def __readFile(self):
         label = [] 
@@ -60,15 +54,18 @@ class DataProcesser:
                 "label": temp[b"label"].tolist(),
             }
             tempData = pd.DataFrame.from_dict(tempData)
-            data = pd.concat([data,tempData],axis=1)
-            data = self.__GroupByLabel(data)
-            data = self.getRandomData(data)
-            self.__data = data
-            print(self.__data)
-
+            randomData = self.getRandomData(tempData)
+            print(len(randomData))
+            print(len(data))
+            print("-------")
+            data = pd.concat([data,randomData], ignore_index= 1)
+        self.__data = pd.concat([self.__data,data], axis=1)
+        print(len(self.__data))
         return  self.__data
     
     def getData(self):
+        data = self.__readFile()
+        self.__data = data
         return self.__data
 
 
@@ -84,12 +81,24 @@ class DataProcesser:
         return[one, two]
     
     def getRandomData(self, data ):
-        dataOne = data[0].sample(n=40, random_state= 3)
-        dataTwo = data[1].sample(n=40, random_state= 3)
+        groupData = self.__GroupByLabel(data)
+        dataOne = groupData[0].sample(n=40, random_state= 3)
+        dataTwo = groupData[1].sample(n=40, random_state= 3)
         randomData = pd.concat([dataOne,dataTwo],ignore_index=True)
-        randomDatadata = randomData.sample(80, random_state= 2)
-        return randomDatadata
+        randomData = randomData.sample(80, random_state= 2)
+        print(len(randomData))
+        return randomData
     
+    def toCsv(self):
+        if (type(self.__data) != pd.DataFrame):
+            self.__readFile()
+        self.__data.to_csv("./dataSet.csv")
+    
+    def toNpArray(self):
+        if (self.__data == None):
+            self.__readFile()
+        npArray = self.__data.to_numpy()
+        return npArray
         
 
 
